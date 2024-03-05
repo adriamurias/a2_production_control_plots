@@ -140,11 +140,7 @@ for (sheet in sheets){
     # Legend
     scale_colour_manual(values = c("#0000c0","#008000")) +
     # Aesthetics
-    theme(plot.margin = ggplot2::margin(b = 45,
-                                        l = 15,
-                                        t = 5,
-                                        r = 5), # Increase bottom margin for n values
-          axis.line = element_line(),
+    theme(axis.line = element_line(),
           panel.grid = element_blank(),
           panel.background = element_blank(),
           legend.title = element_blank(),
@@ -167,24 +163,28 @@ for (sheet in sheets){
     y_upper_lim<-18
     y_lower_lim<-0
     breaks<-2
+    annotation_position <- -4
   }
   
   if(sheet=="Viability") {
     y_upper_lim<-100
     y_lower_lim<-70
     breaks<-5
+    annotation_position <- 63.4
   }
   
   if(sheet=="CD3") {
     y_upper_lim<-100
     y_lower_lim<-90
     breaks<-2
+    annotation_position <- 87.8
   }
   
   if(sheet=="%CAR+") {
     y_upper_lim<-100
     y_lower_lim<-0
     breaks<-10
+    annotation_position <- -21.8
   }
   
   this_plot <- ggplot() +
@@ -201,10 +201,7 @@ for (sheet in sheets){
               colour = "black",
               size = 0.8) +
     # Aesthetics
-    theme(plot.margin = ggplot2::margin(b = 45,
-                                        l = 15,
-                                        t = 5,
-                                        r = 5), # Increase bottom margin for n values
+    theme(plot.margin = ggplot2::margin(b = 30), # Increase bottom margin for n values
           axis.line = element_line(),
           panel.grid = element_blank(),
           panel.background = element_blank(),
@@ -215,7 +212,14 @@ for (sheet in sheets){
     ylab(sheet) +
     scale_x_continuous(breaks = c(7,8,9,10,11,12)) +
     scale_y_continuous(limits = c(y_lower_lim,y_upper_lim),
-                       breaks = seq(y_lower_lim,y_upper_lim, breaks))
+                       breaks = seq(y_lower_lim,y_upper_lim, breaks)) +
+    # Add label with number of patients used to calclulate median & IQR
+    geom_text(data = prodigy_iqr[[sheet]][["all"]],
+              aes(x=visit_day, label=n),
+              colour = "black",
+              y=annotation_position,
+              size=4, show.legend = F) + 
+    coord_cartesian(ylim = c(y_lower_lim,y_upper_lim), clip = "off")
   
   prodigy_plots_error_bars_all[[sheet]] <- this_plot
 }
@@ -284,8 +288,7 @@ for (sheet in sheets){
                         breaks = c("HCB", "CUN"),
                         values = c("#008000","#0000c0")) +
     # Aesthetics
-    theme(plot.margin = ggplot2::margin(l = 20,
-                                        b = 60), # Increase bottom margin for n values
+    theme(plot.margin = ggplot2::margin(b = 50), # Increase bottom margin for n values
           axis.line = element_line(),
           panel.grid = element_blank(),
           panel.background = element_blank(),
