@@ -104,9 +104,7 @@ for (sheet in sheets){
     y_lower_lim<-0
     breaks<-10
   }
-  # y_lower_lim <- round(min(prodigy_iqr[[sheet]][["all"]]$q1))
   
-  # Individual plots + IQR shaded ribbon
   this_plot <- ggplot() +
     # Individual evolutions
     geom_line(data =
@@ -333,7 +331,7 @@ for (i in 1:4){
          plot = prodigy_plots_error_bars_all[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
-# IQR with error bars (All patients)
+# IQR with error bars (Grouped by Centre)
 for (i in 1:4){
   ggsave(paste0("figures/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups[[sheets[i]]],
