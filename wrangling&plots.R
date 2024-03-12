@@ -199,13 +199,13 @@ build_individual_plots <- function(data, iqr_stats){
                   filter(!is.na(value), value != 0),
                 aes(x = visit_day, y = value,
                     group = id, color = centre),
-                alpha = 0.4) + 
+                alpha = 0.3) + 
       geom_point(data =
                    data[[sheet]] %>% 
                    filter(!is.na(value), value != 0),
                  aes(x=visit_day, y = value,
                      color = centre),
-                 size=2.5) +
+                 size=2.5, alpha = 0.3) +
       # Ranges ribbon
       geom_line(data =  iqr_stats[[sheet]][["hcb"]],
                 aes(x = visit_day, y = q2),
@@ -213,7 +213,7 @@ build_individual_plots <- function(data, iqr_stats){
       geom_ribbon(data = iqr_stats[[sheet]][["hcb"]],
                   aes(x = visit_day,
                       ymin = q1, ymax = q3),
-                  fill = "#008000", alpha = 0.2) +
+                  fill = "#008000", alpha = 0.3) +
       # Ranges ribbon
       geom_line(data =  iqr_stats[[sheet]][["cun"]],
                 aes(x = visit_day, y = q2),
@@ -221,7 +221,7 @@ build_individual_plots <- function(data, iqr_stats){
       geom_ribbon(data = iqr_stats[[sheet]][["cun"]],
                   aes(x = visit_day,
                       ymin = q1, ymax = q3),
-                  fill = "#0000c0", alpha = 0.2) +
+                  fill = "#0000c0", alpha = 0.3) +
       # Legend
       scale_colour_manual(values = c("#0000c0","#008000")) +
       # Aesthetics
@@ -325,11 +325,11 @@ build_error_bars_groups_plots <- function(iqr_stats){
   
   for (sheet in sheets){
     if(sheet=="Count BCMACAR+x10e6KG")  {
-      y_upper_lim<-18
+      y_upper_lim<-22
       y_lower_lim<-0
       breaks<-2
-      annotation_position <- -4
-      annotation_position_2 <- -5.2
+      annotation_position <- -5
+      annotation_position_2 <- -6.2
     }
     
     if(sheet=="Viability") {
@@ -447,10 +447,10 @@ for (i in 1:4){
   ggsave(paste0("figures/missing_values/","iqr_individual_",plot_names[i],".png"),
          plot = prodigy_plots_individual[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/interpolated/","iqr_individual_",plot_names[i],".png"),
+  ggsave(paste0("figures/interpolation/","iqr_individual_",plot_names[i],".png"),
          plot = prodigy_plots_individual_interp[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/regression_imputed/","iqr_individual_",plot_names[i],".png"),
+  ggsave(paste0("figures/regression/","iqr_individual_",plot_names[i],".png"),
          plot = prodigy_plots_individual_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
@@ -459,10 +459,10 @@ for (i in 1:4){
   ggsave(paste0("figures/missing_values/","iqr_all_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_all[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/interpolated/","iqr_all_",plot_names[i],".png"),
+  ggsave(paste0("figures/interpolation/","iqr_all_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_all_interp[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/regression_imputed/","iqr_all_",plot_names[i],".png"),
+  ggsave(paste0("figures/regression/","iqr_all_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_all_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
@@ -471,10 +471,10 @@ for (i in 1:4){
   ggsave(paste0("figures/missing_values/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/interpolated/","iqr_",plot_names[i],".png"),
+  ggsave(paste0("figures/interpolation/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups_interp[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/regression_imputed/","iqr_",plot_names[i],".png"),
+  ggsave(paste0("figures/regression/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
