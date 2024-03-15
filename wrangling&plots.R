@@ -169,9 +169,9 @@ build_individual_plots <- function(data, iqr_stats){
   for (sheet in sheets){
     
     if(sheet=="Count BCMACAR+x10e6KG")  {
-      y_upper_lim<-100
+      y_upper_lim<-60
       y_lower_lim<-0
-      breaks<-20
+      breaks<-10
       
       y_label<-"%CARTBCMA+ T cells"
     }
@@ -452,37 +452,37 @@ plot_names <- c("CountBCMA", "Viability", "CD3", "CAR")
 
 # Individual plots + IQR shaded ribbon
 for (i in 1:4){
-  ggsave(paste0("figures/missing_values/","iqr_individual_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/missing_values/","iqr_individual_",plot_names[i],".png"),
          plot = prodigy_plots_individual[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/interpolation/","iqr_individual_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/interpolation/","iqr_individual_",plot_names[i],".png"),
          plot = prodigy_plots_individual_interp[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/regression/","iqr_individual_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/regression/","iqr_individual_",plot_names[i],".png"),
          plot = prodigy_plots_individual_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
 # IQR with error bars (All patients)
 for (i in 1:4){
-  ggsave(paste0("figures/missing_values/","iqr_all_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/missing_values/","iqr_all_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_all[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/interpolation/","iqr_all_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/interpolation/","iqr_all_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_all_interp[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/regression/","iqr_all_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/regression/","iqr_all_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_all_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
 # IQR with error bars (Grouped by Centre)
 for (i in 1:4){
-  ggsave(paste0("figures/missing_values/","iqr_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/missing_values/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/interpolation/","iqr_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/interpolation/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups_interp[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/regression/","iqr_",plot_names[i],".png"),
+  ggsave(paste0("figures/png/regression/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
 }
