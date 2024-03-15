@@ -169,27 +169,35 @@ build_individual_plots <- function(data, iqr_stats){
   for (sheet in sheets){
     
     if(sheet=="Count BCMACAR+x10e6KG")  {
-      y_upper_lim<-35
+      y_upper_lim<-100
       y_lower_lim<-0
-      breaks<-5
+      breaks<-20
+      
+      y_label<-"%CARTBCMA+ T cells"
     }
     
     if(sheet=="Viability") {
       y_upper_lim<-100
-      y_lower_lim<-70
-      breaks<-5
+      y_lower_lim<-0
+      breaks<-20
+      
+      y_label<-"%Viability"
     }
     
     if(sheet=="CD3") {
       y_upper_lim<-100
-      y_lower_lim<-90
-      breaks<-2
+      y_lower_lim<-0
+      breaks<-20
+      
+      y_label<-"%CD3"
     }
     
     if(sheet=="%CAR+") {
       y_upper_lim<-100
       y_lower_lim<-0
-      breaks<-10
+      breaks<-20
+      
+      y_label<-"%CAR+"
     }
     
     this_plot <- ggplot() +
@@ -199,13 +207,13 @@ build_individual_plots <- function(data, iqr_stats){
                   filter(!is.na(value), value != 0),
                 aes(x = visit_day, y = value,
                     group = id, color = centre),
-                alpha = 0.3) + 
+                alpha = 0.2) + 
       geom_point(data =
                    data[[sheet]] %>% 
                    filter(!is.na(value), value != 0),
                  aes(x=visit_day, y = value,
                      color = centre),
-                 size=2.5, alpha = 0.3) +
+                 size=2.5, alpha = 0.2) +
       # Ranges ribbon
       geom_line(data =  iqr_stats[[sheet]][["hcb"]],
                 aes(x = visit_day, y = q2),
@@ -213,7 +221,7 @@ build_individual_plots <- function(data, iqr_stats){
       geom_ribbon(data = iqr_stats[[sheet]][["hcb"]],
                   aes(x = visit_day,
                       ymin = q1, ymax = q3),
-                  fill = "#008000", alpha = 0.3) +
+                  fill = "#008000", alpha = 0.4) +
       # Ranges ribbon
       geom_line(data =  iqr_stats[[sheet]][["cun"]],
                 aes(x = visit_day, y = q2),
@@ -221,7 +229,7 @@ build_individual_plots <- function(data, iqr_stats){
       geom_ribbon(data = iqr_stats[[sheet]][["cun"]],
                   aes(x = visit_day,
                       ymin = q1, ymax = q3),
-                  fill = "#0000c0", alpha = 0.3) +
+                  fill = "#0000c0", alpha = 0.4) +
       # Legend
       scale_colour_manual(values = c("#0000c0","#008000")) +
       # Aesthetics
@@ -477,4 +485,28 @@ for (i in 1:4){
   ggsave(paste0("figures/regression/","iqr_",plot_names[i],".png"),
          plot = prodigy_plots_error_bars_groups_imputed[[sheets[i]]],
          width = 16, height = 12, units = "cm", dpi = 300)
+}
+
+
+# Individual plots + IQR shaded ribbon
+for (i in 1:4){
+  ggsave(paste0("figures/pdf/missing_values/","iqr_individual_",plot_names[i],".pdf"),
+         plot = prodigy_plots_individual[[sheets[i]]],
+         width = 16, height = 12, units = "cm", dpi = 300)
+  ggsave(paste0("figures/pdf/interpolation/","iqr_individual_",plot_names[i],".pdf"),
+         plot = prodigy_plots_individual_interp[[sheets[i]]],
+         width = 16, height = 12, units = "cm", dpi = 300)
+  ggsave(paste0("figures/pdf/regression/","iqr_individual_",plot_names[i],".pdf"),
+         plot = prodigy_plots_individual_imputed[[sheets[i]]],
+         width = 16, height = 12, units = "cm", dpi = 300)
+}
+
+# Individual plots + IQR shaded ribbon (save as PDF)
+for (i in 1:4){
+  ggsave(paste0("figures/pdf/missing_values/","iqr_individual_",plot_names[i],".pdf"),
+         plot = prodigy_plots_individual[[sheets[i]]])
+  ggsave(paste0("figures/pdf/interpolation/","iqr_individual_",plot_names[i],".pdf"),
+         plot = prodigy_plots_individual_interp[[sheets[i]]])
+  ggsave(paste0("figures/pdf/regression/","iqr_individual_",plot_names[i],".pdf"),
+         plot = prodigy_plots_individual_imputed[[sheets[i]]])
 }
