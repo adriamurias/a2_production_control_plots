@@ -2,6 +2,7 @@
 library(tidyverse)
 library(readxl)
 library(zoo) # to interpolate missing values
+library(naniar) # to assess missing values
 
 #------------------------------------------------------------------------------
 # Data import & wrangling
@@ -38,6 +39,57 @@ for (sheet in sheets){
 }
 
 #------------------------------------------------------------------------------
+# Preliminary missing data analysis
+#------------------------------------------------------------------------------
+
+output <- list()
+missing_analysis <- function(procedure_group){
+  # Prepare data to assess missing values
+  df_for_na <-
+    prodigy_controls[procedure_group][[1]] %>% 
+    as_tibble() %>% 
+    pivot_wider(names_from = visit_day,
+                values_from = value)
+  df_na <- df_for_na[,!names(df_for_na) %in% c("id","centre")]
+  
+  n_miss<-n_miss(df_na)
+  prop_miss<-prop_miss(df_na)
+  # Get number of missings per variable (n and %)
+  miss_var<-miss_var_summary(df_na)
+  n_miss_in_var<-miss_var_table(df_na)
+  # Get number of missings per participant (n and %)
+  miss_per_case<-miss_case_summary(df_na)
+  n_miss_in_case<-miss_case_table(df_na)
+  # Which variables contain the most missing variables?
+  plot_miss_var<-gg_miss_var(df_na)
+  # Where are missings located?
+  plot_miss_location<-vis_miss(df_na) + theme(axis.text.x = element_text(angle=80))
+  # Which combinations of variables occur to be missing together?
+  plot_miss_combinations<-gg_miss_upset(df_na)
+  
+  output[["n_miss"]] <- n_miss
+  output[["prop_miss"]] <- prop_miss
+  output[["miss_var"]] <- miss_var
+  output[["n_miss_in_var"]] <- n_miss_in_var
+  output[["miss_per_case"]] <- miss_per_case
+  output[["n_miss_in_case"]] <- n_miss_in_case
+  output[["plot_miss_var"]] <- plot_miss_var
+  output[["plot_miss_location"]] <- plot_miss_location
+  output[["plot_miss_combinations"]] <- plot_miss_combinations
+  
+  print(output)
+}
+
+# Results for all production control groups
+count <- missing_analysis("Count BCMACAR+x10e6KG")
+viability <- missing_analysis("Viability")
+cd3 <- missing_analysis("CD3")
+car <- missing_analysis("%CAR+")
+
+# Data is not missing completely at random in any of the groups,
+# we proceed with missing data imputation
+
+#------------------------------------------------------------------------------
 # Approach A: Interpolate missing data points in time-series
 #------------------------------------------------------------------------------
 
@@ -60,8 +112,7 @@ for (sheet in sheets) {
   prodigy_controls_interp[[sheet]] <- interp_output
   
 }
-
-# When column ends with NA data tendency is lost if we interpolate
+# When a column ends with multiples NAs data trend is lost
 
 #------------------------------------------------------------------------------
 #  Approach B: Fit trend line to individual time-series
@@ -156,6 +207,9 @@ prodigy_iqr <- iqr_calculate(prodigy_controls)
 prodigy_iqr_interp <- iqr_calculate(prodigy_controls_interp)
 # Stats. of imputed data
 prodigy_iqr_imputed <- iqr_calculate(prodigy_controls_imputed)
+
+# Save stats in .csv
+write.csv(prodigy_iqr_imputed, "imputed_iqr.csv", row.names = FALSE)
 
 #------------------------------------------------------------------------------
 # Plots
@@ -422,6 +476,91 @@ build_error_bars_groups_plots <- function(iqr_stats){
   return(prodigy_plots_error_bars_groups)
 }
 
+# IQR with error bars (Grouped by Centre) (Without patient counts below)
+build_error_bars_groups_plots_2 <- function(iqr_stats){
+  
+  prodigy_plots_error_bars_groups <- list()
+  
+  for (sheet in sheets){
+    if(sheet=="Count BCMACAR+x10e6KG")  {
+      y_upper_lim<-22
+      y_lower_lim<-0
+      breaks<-2
+      annotation_position <- -5
+      annotation_position_2 <- -6.2
+    }
+    
+    if(sheet=="Viability") {
+      y_upper_lim<-100
+      y_lower_lim<-70
+      breaks<-5
+      annotation_position <- 63.4
+      annotation_position_2 <- 61.5
+    }
+    
+    if(sheet=="CD3") {
+      y_upper_lim<-100
+      y_lower_lim<-90
+      breaks<-2
+      annotation_position <- 87.8
+      annotation_position_2 <- 87.2
+    }
+    
+    if(sheet=="%CAR+") {
+      y_upper_lim<-100
+      y_lower_lim<-0
+      breaks<-10
+      annotation_position <- -21.8
+      annotation_position_2 <- -28
+    }
+    
+    this_plot <-
+      ggplot() +
+      # HCB
+      geom_errorbar(data = iqr_stats[[sheet]][["hcb"]],
+                    aes(x=visit_day,
+                        ymin=q1, ymax=q3, colour = "HCB"),
+                    width = 0.2) +
+      geom_point(data = iqr_stats[[sheet]][["hcb"]],
+                 aes(x=visit_day, y=q2, colour = "HCB"),
+                 size=2.5) +
+      geom_line(data = iqr_stats[[sheet]][["hcb"]],
+                aes(x=visit_day, y=q2, colour = "HCB"),
+                size = 0.8) +
+      # CUN
+      geom_errorbar(data = iqr_stats[[sheet]][["cun"]],
+                    aes(x=visit_day,
+                        ymin=q1, ymax=q3, colour = "CUN"),
+                    width = 0.2) +
+      geom_point(data = iqr_stats[[sheet]][["cun"]],
+                 aes(x=visit_day, y=q2, colour = "CUN"),
+                 size=2.5) +
+      geom_line(data = iqr_stats[[sheet]][["cun"]],
+                aes(x=visit_day, y=q2, colour = "CUN"),
+                size = 0.8) +
+      # Legend
+      scale_colour_manual("", 
+                          breaks = c("HCB", "CUN"),
+                          values = c("#008000","#0000c0")) +
+      # Aesthetics
+      theme(axis.line = element_line(),
+            panel.grid = element_blank(),
+            panel.background = element_blank(),
+            legend.title = element_blank(),
+            legend.key = element_blank()
+      ) +
+      xlab("Days IN-process control") +
+      ylab(sheet) +
+      scale_x_continuous(breaks = c(7,8,9,10,11,12)) +
+      scale_y_continuous(limits = c(y_lower_lim,y_upper_lim),
+                         breaks = seq(y_lower_lim,y_upper_lim, breaks))
+    
+    prodigy_plots_error_bars_groups[[sheet]] <- this_plot
+  }
+  
+  return(prodigy_plots_error_bars_groups)
+}
+
 # Individual plots + IQR shaded ribbon
 prodigy_plots_individual <-
   build_individual_plots(prodigy_controls, prodigy_iqr)
@@ -443,6 +582,14 @@ prodigy_plots_error_bars_groups_interp <-
   build_error_bars_groups_plots(prodigy_iqr_interp)
 prodigy_plots_error_bars_groups_imputed <-
   build_error_bars_groups_plots(prodigy_iqr_imputed)
+
+# IQR with error bars (Grouped by Centre) (Without patient counts below)
+prodigy_plots_error_bars_groups_2 <-
+  build_error_bars_groups_plots_2(prodigy_iqr)
+prodigy_plots_error_bars_groups_interp_2 <-
+  build_error_bars_groups_plots_2(prodigy_iqr_interp)
+prodigy_plots_error_bars_groups_imputed_2 <-
+  build_error_bars_groups_plots_2(prodigy_iqr_imputed)
 
 #------------------------------------------------------------------------------
 # Save plots
@@ -487,21 +634,18 @@ for (i in 1:4){
          width = 16, height = 12, units = "cm", dpi = 300)
 }
 
-
-# Individual plots + IQR shaded ribbon
+# SAVE PDFs
+# IQR with error bars (Grouped by Centre)
 for (i in 1:4){
-  ggsave(paste0("figures/pdf/missing_values/","iqr_individual_",plot_names[i],".pdf"),
-         plot = prodigy_plots_individual[[sheets[i]]],
-         width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/pdf/interpolation/","iqr_individual_",plot_names[i],".pdf"),
-         plot = prodigy_plots_individual_interp[[sheets[i]]],
-         width = 16, height = 12, units = "cm", dpi = 300)
-  ggsave(paste0("figures/pdf/regression/","iqr_individual_",plot_names[i],".pdf"),
-         plot = prodigy_plots_individual_imputed[[sheets[i]]],
-         width = 16, height = 12, units = "cm", dpi = 300)
+  ggsave(paste0("figures/pdf/missing_values/","iqr_",plot_names[i],".pdf"),
+         plot = prodigy_plots_error_bars_groups_2[[sheets[i]]])
+  ggsave(paste0("figures/pdf/interpolation/","iqr_",plot_names[i],".pdf"),
+         plot = prodigy_plots_error_bars_groups_interp_2[[sheets[i]]])
+  ggsave(paste0("figures/pdf/regression/","iqr_",plot_names[i],".pdf"),
+         plot = prodigy_plots_error_bars_groups_imputed_2[[sheets[i]]])
 }
 
-# Individual plots + IQR shaded ribbon (save as PDF)
+# Individual plots + IQR shaded ribbon
 for (i in 1:4){
   ggsave(paste0("figures/pdf/missing_values/","iqr_individual_",plot_names[i],".pdf"),
          plot = prodigy_plots_individual[[sheets[i]]])
